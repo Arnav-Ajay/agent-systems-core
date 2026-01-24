@@ -46,9 +46,9 @@ This repository documents three agent regimes, each adding *one* capability whil
 
 ---
 
-### 1. Retrieval as a Decision
+### 1️⃣ Retrieval as a Decision
 
-**[`agent-tool-retriever`](https://github.com/Arnav-Ajay/agent-tool-retriever)**
+**Repo: [`agent-tool-retriever`](https://github.com/Arnav-Ajay/agent-tool-retriever)**
 
 **Problem addressed:**
 Retrieval is usually injected by default, even when unnecessary or harmful.
@@ -68,9 +68,9 @@ Retrieval is usually injected by default, even when unnecessary or harmful.
 
 ---
 
-### 2. Planning vs Execution Separation
+### 2️⃣ Planning vs Execution Separation
 
-**[`agent-planner-executor`](https://github.com/Arnav-Ajay/agent-planner-executor)**
+**Repo: [`agent-planner-executor`](https://github.com/Arnav-Ajay/agent-planner-executor)**
 
 **Problem addressed:**
 Monolithic agent loops make it impossible to tell whether errors come from bad reasoning or bad execution.
@@ -92,9 +92,9 @@ Monolithic agent loops make it impossible to tell whether errors come from bad r
 
 ---
 
-### 3. Memory as a Mechanism
+### 3️⃣ Memory as a Mechanism
 
-**[`agent-memory-systems`](https://github.com/Arnav-Ajay/agent-memory-systems)**
+**Repo: [`agent-memory-systems`](https://github.com/Arnav-Ajay/agent-memory-systems)**
 
 **Problem addressed:**
 “Agent memory” is often treated as accumulated context, not controlled state.
