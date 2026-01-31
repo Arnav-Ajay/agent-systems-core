@@ -1,68 +1,73 @@
-# Agent Systems: Control, Separation, and State
+# Agent Systems: Control, Separation, State, and Generation
 
-**A systems-level exploration of decision-making, execution, and memory in agent architectures**
+**A systems-level decomposition of decision-making, execution, memory, and generation in agent architectures**
 
 ---
 
 ## What This Repository Is
 
-This repository consolidates a set of **agent system primitives** that are often conflated in modern LLM applications:
+This repository consolidates a sequence of **agent system primitives** that are frequently collapsed into a single opaque loop in modern LLM applications:
 
-* **Control** — deciding *whether* to act (e.g., retrieve or not)
-* **Separation** — deciding *what* to do vs *how* to do it
+* **Control** — deciding *whether* to act
+* **Separation** — deciding *what* should happen vs *how* it happens
 * **State** — deciding *what persists* across executions
+* **Generation** — deciding *whether the system should speak at all*
 
-Rather than presenting a single “smart agent,” this work decomposes agents into **independent, inspectable mechanisms**.
+Rather than presenting a “smart agent,” this work decomposes agents into **independent, inspectable mechanisms** with explicit contracts.
 
-The goal is not to build a better chatbot.
-The goal is to make **agent failure modes legible**.
+The goal is not to improve answers.
+The goal is to make **agent behavior and failure legible**.
 
 ---
 
 ## The Core Problem
 
-Most agent systems collapse all of the following into a single loop:
+Most agent systems conflate:
 
 * reasoning
 * tool invocation
 * execution
 * memory
+* generation
 * logging
 
-When that happens:
+into a single loop.
+
+When this happens:
 
 * failures cannot be attributed
-* reasoning cannot be evaluated independently
-* memory contaminates decision-making silently
-* observability becomes retrospective guesswork
+* decisions cannot be audited
+* memory contaminates behavior silently
+* generation appears inevitable rather than conditional
+* observability collapses into post-hoc guesswork
 
-This repository demonstrates that **agents only become debuggable once these concerns are separated**.
+This repository demonstrates that **agents only become debuggable once these concerns are separated into first-class system layers**.
 
 ---
 
 ## System Regimes Implemented
 
-This repository documents three agent regimes, each adding *one* capability while preserving prior invariants.
+Each included repository introduces **exactly one new capability**, while preserving prior invariants.
 
 ---
 
 ### 1️⃣ Retrieval as a Decision
 
-**Repo: [`agent-tool-retriever`](https://github.com/Arnav-Ajay/agent-tool-retriever)**
+**Repo:** [`agent-tool-retriever`](https://github.com/Arnav-Ajay/agent-tool-retriever)
 
-**Problem addressed:**
+**Problem addressed**
 Retrieval is usually injected by default, even when unnecessary or harmful.
 
-**Mechanism introduced:**
+**Mechanism introduced**
 
-* Retrieval is a **binary, explicit decision**
+* Retrieval becomes an **explicit binary decision**
 * The agent may choose:
 
   * `noop` (parametric answer), or
   * `retrieve` (tool invocation)
 * Every decision is logged with rationale
 
-**Key outcome:**
+**Key outcome**
 
 > Many RAG failures are **control failures**, not retrieval failures.
 
@@ -70,60 +75,100 @@ Retrieval is usually injected by default, even when unnecessary or harmful.
 
 ### 2️⃣ Planning vs Execution Separation
 
-**Repo: [`agent-planner-executor`](https://github.com/Arnav-Ajay/agent-planner-executor)**
+**Repo:** [`agent-planner-executor`](https://github.com/Arnav-Ajay/agent-planner-executor)
 
-**Problem addressed:**
-Monolithic agent loops make it impossible to tell whether errors come from bad reasoning or bad execution.
+**Problem addressed**
+Monolithic agent loops make it impossible to tell whether failures arise from reasoning or execution.
 
-**Mechanism introduced:**
+**Mechanism introduced**
 
 * **Planner** decides *what should happen*
 * **Executor** performs *exactly what was planned*
 * **Runtime** orchestrates without reasoning
 
-**Invariant enforced:**
+**Invariant enforced**
 
 > Reasoning must be inspectable without running tools.
 > Execution must be debuggable without re-reasoning.
 
-**Key outcome:**
+**Key outcome**
 
 > Observability improves **without changing system behavior**.
 
 ---
 
-### 3️⃣ Memory as a Mechanism
+### 3️⃣ Memory as a Governed Mechanism
 
-**Repo: [`agent-memory-systems`](https://github.com/Arnav-Ajay/agent-memory-systems)**
+**Repo:** [`agent-memory-systems`](https://github.com/Arnav-Ajay/agent-memory-systems)
 
-**Problem addressed:**
-“Agent memory” is often treated as accumulated context, not controlled state.
+**Problem addressed**
+“Agent memory” is often treated as accumulated context rather than controlled state.
 
-**Mechanism introduced:**
+**Mechanism introduced**
 
 Three explicit memory types:
 
-| Memory Type | Scope         | Persistence | Purpose                 |
-| ----------- | ------------- | ----------- | ----------------------- |
-| Working     | Session-local | None        | Intra-run reasoning     |
-| Episodic    | Cross-session | Append-only | Event trace             |
-| Semantic    | Cross-session | Gated       | Long-lived abstractions |
+| Memory Type | Scope         | Persistence | Purpose             |
+| ----------- | ------------- | ----------- | ------------------- |
+| Working     | Session-local | None        | Intra-run reasoning |
+| Episodic    | Cross-session | Append-only | Event trace         |
+| Semantic    | Cross-session | Gated       | Stable abstractions |
 
 All memory access is routed through a **Memory Router** with:
 
 * explicit reads
 * explicit writes
-* explicit forgetting policies
+* explicit forgetting
+* full traceability
 
-**Key outcome:**
+**Key outcome**
 
 > Memory can exist **without being helpful** — and that distinction matters.
 
 ---
 
+### 4️⃣ Generation as a Decision (Not an Output)
+
+**Repo:** [`llm-generation-control`](https://github.com/Arnav-Ajay/llm-generation-control)
+
+**Problem addressed**
+Most systems treat generation as an inevitable effect of retrieval.
+
+This hides an essential question:
+
+> **Given evidence, should the system speak at all?**
+
+**Mechanism introduced**
+
+Generation is elevated to a **policy-controlled decision layer**.
+
+Every run produces exactly one outcome:
+
+* **ANSWER** — evidence judged sufficient
+* **HEDGE** — evidence judged conflicting
+* **REFUSE** — evidence judged insufficient
+
+There are **no implicit fallbacks** and no partial states.
+
+**Key properties**
+
+* Generation policy does **not**:
+
+  * access retrieval internals
+  * access memory
+  * call an LLM
+* Generation text (if any) is strictly downstream of the decision
+* All decisions are logged as first-class artifacts
+
+**Key outcome**
+
+> Hallucination becomes a **policy failure**, not a mystery.
+
+---
+
 ## Architectural Invariants (Across All Systems)
 
-The following rules are enforced consistently:
+The following constraints hold across every repository:
 
 * No implicit retrieval
 * No hidden tool calls
@@ -132,21 +177,23 @@ The following rules are enforced consistently:
 * No memory access without logging
 * Logs are **never** treated as memory
 * Memory is **never** reconstructed from logs
+* Generation is **never guaranteed**
 
-These invariants are more important than performance.
+These invariants matter more than performance.
 
 ---
 
 ## What This Repository Establishes
 
-Across the included systems, this work establishes that:
+Across these systems, this work establishes that:
 
-* Agent behavior can be decomposed into independent mechanisms
-* Control decisions are a distinct failure mode
-* Planning and execution must be separable to be observable
-* State can persist across sessions without improving correctness
-* Policy enforcement measurably alters agent behavior
-* Debuggability improves when architecture, not prompts, is the focus
+* Agent behavior can be decomposed into independent layers
+* Control decisions are a distinct failure surface
+* Planning and execution must be separated to be observable
+* State persistence does not imply usefulness
+* Policy enforcement measurably alters behavior
+* Generation must be governed, not assumed
+* Debuggability improves when architecture — not prompts — is the focus
 
 ---
 
@@ -154,25 +201,26 @@ Across the included systems, this work establishes that:
 
 This repository makes **no claim** that:
 
-* agents are more accurate
+* answers are more accurate
+* hallucinations are eliminated
 * memory improves quality
-* retrieval improves answers
+* retrieval improves correctness
 * these systems are production-ready
 * intelligence increases with complexity
 
-Those claims require **failure analysis**, not feature addition.
+Those claims require **failure analysis**, not feature accumulation.
 
 ---
 
-## Relationship to Earlier Systems
+## Relationship to Foundational RAG Systems
 
-This work builds on foundational RAG components consolidated in:
+All agent systems here build on frozen RAG foundations consolidated in:
 
 * **[`rag-systems-foundations`](https://github.com/Arnav-Ajay/rag-systems-foundations)**
   (chunking, retrieval, reranking, representability)
 
-All retrieval and ranking logic is reused unchanged.
-All improvements here are **architectural**, not algorithmic.
+No retrieval or ranking logic is modified.
+All progress here is **architectural**, not algorithmic.
 
 ---
 
@@ -183,6 +231,7 @@ In real systems:
 * compilers are separate from runtimes
 * planners are separate from operators
 * state is governed by policy, not accumulation
+* output is conditional, not assumed
 
 Agent systems should follow the same discipline.
 
@@ -192,18 +241,25 @@ This repository treats agents as a **systems engineering problem**, not a prompt
 
 ## What Comes Next
 
-With control, separation, and state established, the remaining questions are no longer about features, but about **failure**:
+With:
 
-* How do these systems break under pressure?
-* Which abstractions mislead builders?
-* Where does observability still collapse?
-* What failure patterns repeat across regimes?
+* explicit control
+* planner–executor separation
+* governed memory
+* generation policy
 
-Those questions are addressed in subsequent repositories focused on:
+…the remaining questions are no longer about features, but about **failure**:
+
+* Where do these layers interact pathologically?
+* Which abstractions fail under pressure?
+* How do failures compound across layers?
+* How should they be observed in real systems?
+
+Those questions are addressed in downstream work focused on:
 
 * failure-first analysis
-* observability
-* system-level synthesis
+* cross-layer failure taxonomy
+* observability and causal tracing
 
 ---
 
