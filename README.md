@@ -257,9 +257,8 @@ With:
 
 Those questions are addressed in downstream work focused on:
 
-* failure-first analysis
-* cross-layer failure taxonomy
-* observability and causal tracing
+* [**`rag-failure-modes`**](https://github.com/Arnav-Ajay/rag-failure-modes) — systematic failure taxonomy using generation decisions as evidence
+* [**`llm-observability-logs`**](https://github.com/Arnav-Ajay/llm-observability-logs) — cross-layer causal tracing over time
 
 ---
 
